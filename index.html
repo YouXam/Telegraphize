@@ -38,8 +38,8 @@
             <div>
                 <h1 class="text-4xl font-bold">Telegraphize</h1>
                 <h2 class="text-1xl my-5">
-                    Publish webpage to telegraph. 
-                    <a class="link" href="https://github.com/YouXam/telegraphize" target="_blank">
+                    Publish webpage to telegraph.
+                    <a class="link" rel="noopener" href="https://github.com/YouXam/telegraphize" target="_blank">
                         GitHub Repo
                     </a>
                 </h2>
@@ -80,6 +80,13 @@
             }
 
             const response = await fetch(requestUrl);
+            if (response.status != 200) {
+                const resultDiv = document.getElementById('result');
+                const errorMessage = await response.text();
+                resultDiv.innerHTML = `<div class="my-5 alert alert-error">${errorMessage}</div>` + resultDiv.innerHTML;
+                telegraphizeButton.disabled = false;
+                return;
+            }
             const data = await response.json();
             const resultDiv = document.getElementById('result');
             resultDiv.innerHTML = `
