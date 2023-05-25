@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegraphize</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@1.12.0/dist/full.css" rel="stylesheet">
+    <style>
+        .input-error {
+            animation: input-error 1s infinite;
+        }
+
+        @keyframes input-error {
+
+            0%,
+            100% {
+                border-color: #e5e7eb;
+                /* Reset color */
+                color: #6b7280;
+                /* Reset color */
+            }
+
+            50% {
+                border-color: #f87171;
+                /* Error color */
+                color: #f87171;
+                /* Error color */
+            }
+        }
+    </style>
+</head>
+
+<body class="p-10">
+    <div class="container mx-auto">
+        <div class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-4xl font-bold">Telegraphize</h1>
+                <h2 class="text-1xl my-5">
+                    Publish webpage to telegraph. 
+                    <a class="link" href="https://github.com/YouXam/telegraphize" target="_blank">
+                        GitHub Repo
+                    </a>
+                </h2>
+            </div>
+
+        </div>
+        <div class="mb-5">
+            <input id="url" type="text" class="input input-bordered w-full" placeholder="Enter a URL (required)">
+        </div>
+        <div class="mb-5">
+            <input id="author" type="text" class="input input-bordered w-full" placeholder="Author (optional)">
+        </div>
+        <button id="telegraphize" class="btn btn-primary">Telegraphize!</button>
+        <div id="result" class="mt-5"></div>
+    </div>
+
+    <script>
+        const telegraphizeButton = document.getElementById('telegraphize');
+        const urlInput = document.getElementById('url');
+
+        telegraphizeButton.addEventListener('click', async () => {
+            const urlValue = encodeURIComponent(urlInput.value);
+            const authorValue = encodeURIComponent(document.getElementById('author').value);
+
+            if (!urlValue) {
+                urlInput.classList.add('input-error');
+                setTimeout(() => {
+                    urlInput.classList.remove('input-error');
+                }, 1000);
+                return;
+            }
+
+            telegraphizeButton.disabled = true;
+
+            let requestUrl = `/createPage?url=${urlValue}`;
+            if (authorValue) {
+                requestUrl += `&author=${authorValue}`;
+            }
+
+            const response = await fetch(requestUrl);
+            const data = await response.json();
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <a class="btn btn-success mr-2 my-5" href="${data.url}" target="_blank">${data.title}</a>
+                <button class="btn btn-secondary" onclick="shareToTelegram('${data.url}')">Share on Telegram</button>
+                <br/>
+            ` + resultDiv.innerHTML;
+
+            telegraphizeButton.disabled = false;
+        });
+
+        function shareToTelegram(url) {
+            const encodedUrl = encodeURIComponent(url);
+            const telegramUrl = `https://t.me/share/url?url=${encodedUrl}`;
+            window.open(telegramUrl, '_blank');
+        }
+    </script>
+</body>
+
+</html>

@@ -2,6 +2,7 @@ const { Readability } = require('@mozilla/readability');
 const { JSDOM } = require('jsdom');
 const axios = require('axios');
 const Koa = require('koa');
+const fsp = require('fs/promises');
 const Router = require('@koa/router');
 
 function fetchHtml(url) {
@@ -46,7 +47,6 @@ function domToNode(domNode) {
         nodeElement.attrs = {
             src: `https://${process.env.VERCEL_URL}/proxy?url=${decodeURIComponent(nodeElement.attrs.src)}`
         }
-        console.log(nodeElement.attrs.src)
     }
     if (domNode.childNodes.length > 0) {
         nodeElement.children = [];
@@ -75,20 +75,16 @@ async function publishToTelegraph(article, url, author) {
     return res.data.result
 }
 
-function main(url, author) {
-    readability(url)
-        .then(article => {
-            console.log(article)
-            publishToTelegraph(article, url).then(x => console.log(x))
-        })
-}
-
 const app = new Koa();
 const router = new Router();
 
+router.get('/', async (ctx) => {
+    ctx.body = await fsp.readFile('./index.html', 'utf8')
+});
+
 router.get('/createPage', async (ctx) => {
     const url = decodeURIComponent(ctx.query.url);
-    const author = decodeURIComponent(ctx.query.author);
+    const author = ctx.query.author ? decodeURIComponent(ctx.query.author) : '';
     try {
         const article = await readability(url);
         const page = await publishToTelegraph(article, url, author);
