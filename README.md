@@ -1,4 +1,4 @@
-# telegraphize
+# Telegraphize
 
 Publish webpage to telegraph.
 
