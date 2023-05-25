@@ -4,7 +4,7 @@ Publish webpage to telegraph.
 
 ## Demo
 
-[https://telegraphize.vercel.app/](https://telegraphize.vercel.app/)
+https://telegraphize.youxam.one/
 
 ## Deploy to vercel
 
