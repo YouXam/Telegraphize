@@ -47,7 +47,7 @@
 
         </div>
         <div class="mb-5">
-            <input id="url" type="text" class="input input-bordered w-full" placeholder="Enter a URL (required)">
+            <input id="url" type="text" class="input input-bordered w-full" placeholder="URL (required)">
         </div>
         <div class="mb-5">
             <input id="author" type="text" class="input input-bordered w-full" placeholder="Author (optional)">
@@ -90,7 +90,7 @@
             const data = await response.json();
             const resultDiv = document.getElementById('result');
             resultDiv.innerHTML = `
-                <a class="btn btn-success mr-2 my-5" href="${data.url}" target="_blank">${data.title}</a>
+                <a class="btn btn-success mr-2 my-5 inline-block whitespace-nowrap overflow-ellipsis overflow-hidden" href="${data.url}" target="_blank">${data.title}</a>
                 <button class="btn btn-secondary" onclick="shareToTelegram('${data.url}')">Share on Telegram</button>
                 <br/>
             ` + resultDiv.innerHTML;
