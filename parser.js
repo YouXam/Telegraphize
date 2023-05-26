@@ -118,10 +118,6 @@ class HtmlToNodesParser {
             if (tag == 'img' || tag == 'video') {
                 attrs.src = this.mediaUrlMap.get(attrs.src) || attrs.src;
             }
-
-            if (tag == 'a' && attrs?.href.startsWith('#')) {
-                attrs.href = this.idMap.get(attrs.href) || attrs.href;
-            }
         }
 
         if (!VOID_ELEMENTS.has(tag)) {
