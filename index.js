@@ -8,7 +8,7 @@ const { axios, fetchHtml, publishToTelegraph } = require('./request')
 async function readability(url) {
     const html = await fetchHtml(url);
     const { document } = (new JSDOM(html, { url })).window;
-    const article = new Readability(document,).parse();
+    const article = new Readability(document).parse();
     return article
 }
 
@@ -24,6 +24,11 @@ router.get('/createPage', async (ctx) => {
     const author = ctx.query.author ? decodeURIComponent(ctx.query.author) : '';
     try {
         const article = await readability(url);
+        if (!article) {
+            ctx.status = 500;
+            ctx.body = 'Error generating page, this page may not be supported.';
+            return;
+        }
         const page = await publishToTelegraph(article, url, author);
         ctx.set('Content-Type', 'application/json');
         ctx.body = page;

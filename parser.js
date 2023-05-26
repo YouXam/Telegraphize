@@ -118,8 +118,7 @@ class HtmlToNodesParser {
             if (tag == 'img' || tag == 'video') {
                 attrs.src = this.mediaUrlMap.get(attrs.src) || attrs.src;
             }
-
-            if (tag == 'a' && attrs?.href.startsWith('#')) {
+            if (tag == 'a' && attrs?.href?.startsWith('#')) {
                 attrs.href = this.idMap.get(attrs.href) || attrs.href;
             }
         }
@@ -184,7 +183,7 @@ class HtmlToNodesParser {
 
     handleCharRef(name) {
         let c;
-        if (name.startsWith('x')) {
+        if (name?.startsWith('x')) {
             c = String.fromCodePoint(parseInt(name.substr(1), 16));
         } else {
             c = String.fromCodePoint(parseInt(name, 10));
