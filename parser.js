@@ -8,7 +8,7 @@ const RE_WHITESPACE = /\s+/g;
 const ALLOWED_TAGS = new Set([
     'a', 'aside', 'b', 'blockquote', 'br', 'code', 'em', 'figcaption', 'figure',
     'h3', 'h4', 'hr', 'i', 'iframe', 'img', 'li', 'ol', 'p', 'pre', 's',
-    'strong', 'u', 'ul', 'video', 'span'
+    'strong', 'u', 'ul', 'video', 'span',
 ]);
 
 const VOID_ELEMENTS = new Set([
@@ -87,11 +87,17 @@ class HtmlToNodesParser {
         }
     }
 
+    replaceTag(tag) {
+        if (!ALLOWED_TAGS.has(tag)) {
+            if (tag == 'h1' || tag == 'h2')  return 'h3'
+            return 'div'
+        }
+        return tag
+    }
+
     handleStartTag(node) {
         let tag = node.tagName.toLowerCase();
-        if (!ALLOWED_TAGS.has(tag)) {
-            tag = 'div';
-        }
+        tag = this.replaceTag(tag)
 
         if (BLOCK_ELEMENTS.has(tag)) {
             this.lastTextNode = null;
@@ -112,6 +118,10 @@ class HtmlToNodesParser {
             if (tag == 'img' || tag == 'video') {
                 attrs.src = this.mediaUrlMap.get(attrs.src) || attrs.src;
             }
+
+            if (tag == 'a' && attrs?.href.startsWith('#')) {
+                attrs.href = this.idMap.get(attrs.href) || attrs.href;
+            }
         }
 
         if (!VOID_ELEMENTS.has(tag)) {
@@ -121,9 +131,7 @@ class HtmlToNodesParser {
     }
 
     handleEndTag(tag) {
-        if (!ALLOWED_TAGS.has(tag)) {
-            tag = 'div';
-        }
+        tag = this.replaceTag(tag)
 
         if (VOID_ELEMENTS.has(tag)) {
             return;
@@ -147,9 +155,23 @@ class HtmlToNodesParser {
             delete lastNode.children;
         }
 
-        this.removeExtraNewLines();
+        if (!this.tagsPath.includes('pre')) {
+            this.removeExtraNewLines();
+            this.trimNodes();
+        }
 
-        this.trimNodes();
+        for (let i = 0; i < this.currentNodes.length; i++) {
+            if (this.currentNodes[i]?.tag == 'code' && this.currentNodes[i]?.children?.length > 0) {
+                let newChildren = [];
+                for (let j = 0; j < this.currentNodes[i].children.length; j++) {
+                    if (typeof this.currentNodes[i].children[j] !== 'string')
+                        newChildren.push(this.currentNodes[i].children[j])
+                    else 
+                        newChildren = newChildren.concat(this.currentNodes[i].children[j].split('\n').flatMap((item, index, array) => index === array.length - 1 ? [item] : [item, {tag: "br", children: []}] ))
+                }
+                this.currentNodes[i].children = newChildren;
+            }
+        }
     }
 
     handleData(data) {

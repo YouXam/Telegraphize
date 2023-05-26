@@ -21,6 +21,7 @@ function fetchHtml(url) {
 
 async function publishToTelegraph(article, url, author) {
     const node = await htmlToNodes(article.content)
+    // require('fs/promises').writeFile("nodes.json", JSON.stringify(node, null, '    '))
     const domain = url.match(/https?:\/\/([^/]+)/)[1]
     const user = (await axios.get('https://api.telegra.ph/createAccount?short_name=default&author_name=default')).data.result
     const res = await axios.post('https://api.telegra.ph/createPage', {
