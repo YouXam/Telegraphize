@@ -118,6 +118,10 @@ class HtmlToNodesParser {
             if (tag == 'img' || tag == 'video') {
                 attrs.src = this.mediaUrlMap.get(attrs.src) || attrs.src;
             }
+
+            if (tag == 'a' && attrs?.href.startsWith('#')) {
+                attrs.href = this.idMap.get(attrs.href) || attrs.href;
+            }
         }
 
         if (!VOID_ELEMENTS.has(tag)) {
@@ -197,9 +201,20 @@ class HtmlToNodesParser {
         return this.nodes;
     }
 
+    handleTitles(document) {
+        const titles = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+        const idMap = new Map();
+        titles.forEach(title => {
+            if (!title.textContent) return;
+            idMap.set(`#${title.textContent.replaceAll(RE_WHITESPACE, '-').toLowerCase()}`, `#${title.textContent.replaceAll(RE_WHITESPACE, '-')}`);
+        });
+        this.idMap = idMap;
+    }
+
     async parse(htmlContent) {
         const dom = new JSDOM(htmlContent);
         this.mediaUrlMap = await handleAllFiles(dom.window.document);
+        this.handleTitles(dom.window.document);
         this.traverse(dom.window.document.body);
     }
 
