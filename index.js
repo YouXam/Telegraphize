@@ -31,7 +31,11 @@ router.get('/createPage', async (ctx) => {
         }
         const page = await publishToTelegraph(article, url, author);
         ctx.set('Content-Type', 'application/json');
-        ctx.body = page;
+        ctx.body = {
+            url: page.url,
+            title: page.title,
+            article
+        }
     } catch (error) {
         ctx.status = 500;
         ctx.body = 'Error generating page:' + error.message;
