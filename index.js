@@ -1,5 +1,6 @@
 const { Readability } = require('@mozilla/readability');
 const Koa = require('koa');
+const { koaBody } = require('koa-body');
 const fsp = require('fs/promises');
 const Router = require('@koa/router');
 const { JSDOM } = require('jsdom');
@@ -12,28 +13,41 @@ async function readability(url) {
     return article
 }
 
+async function readabilityWithHtml(html) {
+    const { document } = (new JSDOM(html)).window;
+    const article = new Readability(document).parse();
+    return article
+}
+
 const app = new Koa();
+
+app.use(koaBody());
+
 const router = new Router();
 
 router.get('/', async (ctx) => {
     ctx.body = await fsp.readFile('./index.html', 'utf8')
 });
 
-router.get('/createPage', async (ctx) => {
-    const url = decodeURIComponent(ctx.query.url);
-    const author = ctx.query.author ? decodeURIComponent(ctx.query.author) : '';
+router.all('/createPage', async (ctx) => {
+    const body = ctx.request.body;
+    const url = ctx.query.url ? decodeURIComponent(ctx.query.url) : body.url;
+    const content = ctx.query.content ? decodeURIComponent(ctx.query.content) : body.content;
+    const title = ctx.query.title ? decodeURIComponent(ctx.query.title) : body.title;
+    const author = ctx.query.author ? decodeURIComponent(ctx.query.author) : body.author;
     try {
-        const article = await readability(url);
+        
+        const article = content ? await readabilityWithHtml(content) : await readability(url);
         if (!article) {
             ctx.status = 500;
             ctx.body = 'Error generating page, this page may not be supported.';
             return;
         }
-        const page = await publishToTelegraph(article, url, author);
+        const page = await publishToTelegraph(article, url, author, title);
         ctx.set('Content-Type', 'application/json');
         ctx.body = {
             url: page.url,
-            title: page.title,
+            title: title || page.title,
             article
         }
     } catch (error) {
